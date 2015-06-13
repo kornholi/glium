@@ -195,20 +195,37 @@ fn get_uniform_blocks() {
 
     let my_block = blocks.get("MyBlock").unwrap();
     assert!(my_block.size >= 3 * 4 + 4 * 12);
-    assert_eq!(my_block.members.len(), 2);
 
-    let mut members = my_block.members.clone();
-    members.sort_by(|a, b| a.offset.cmp(&b.offset));
+    if let glium::program::BlockLayout::Struct { ref members } = my_block.layout {
+        assert_eq!(members.len(), 2);
 
-    assert_eq!(members[0].name, "position");
-    assert_eq!(members[0].ty, glium::uniforms::UniformType::FloatVec3);
-    assert_eq!(members[0].size, None);
-    assert_eq!(members[0].offset, 0);
+        let mut members = members.clone();
+        members.sort_by(|a, b| a.0.cmp(&b.0));
 
-    //assert_eq!(members[1].name, "color");     // FIXME: "color[0]" is returned
-    assert_eq!(members[1].ty, glium::uniforms::UniformType::Float);
-    assert_eq!(members[1].size, Some(12));
-    assert!(members[1].offset >= 4 * 3);
+        assert_eq!(members[1].0, "position");
+        if let glium::program::BlockLayout::BasicType { ty, offset_in_buffer } = members[1].1 {
+            assert_eq!(ty, glium::uniforms::UniformType::FloatVec3);
+            assert_eq!(offset_in_buffer, 0);
+        } else {
+            panic!();
+        }
+
+        //assert_eq!(members[0].0, "color");     // FIXME: "color[0]" is returned
+        if let glium::program::BlockLayout::Array { ref content, length } = members[0].1 {
+            assert_eq!(length, 12);
+            if let glium::program::BlockLayout::BasicType { ty, offset_in_buffer } = **content {
+                assert_eq!(ty, glium::uniforms::UniformType::Float);
+                assert!(offset_in_buffer >= 4 * 3);
+            } else {
+                panic!();
+            }
+        } else {
+            panic!();
+        }
+
+    } else {
+        panic!();
+    }
 
     display.assert_no_error(None);
 }
@@ -488,20 +505,37 @@ fn ssbos() {
 
     let my_block = blocks.get("MyBuffer").unwrap();
     assert!(my_block.size >= 3 * 4 + 4 * 12);
-    assert_eq!(my_block.members.len(), 2);
 
-    let mut members = my_block.members.clone();
-    members.sort_by(|a, b| a.offset.cmp(&b.offset));
+    if let glium::program::BlockLayout::Struct { ref members } = my_block.layout {
+        assert_eq!(members.len(), 2);
 
-    assert_eq!(members[0].name, "position");
-    assert_eq!(members[0].ty, glium::uniforms::UniformType::FloatVec3);
-    assert_eq!(members[0].size, None);
-    assert_eq!(members[0].offset, 0);
+        let mut members = members.clone();
+        members.sort_by(|a, b| a.0.cmp(&b.0));
 
-    //assert_eq!(members[1].name, "color");     // FIXME: "color[0]" is returned
-    assert_eq!(members[1].ty, glium::uniforms::UniformType::Float);
-    assert_eq!(members[1].size, Some(12));
-    assert!(members[1].offset >= 4 * 3);
+        assert_eq!(members[1].0, "position");
+        if let glium::program::BlockLayout::BasicType { ty, offset_in_buffer } = members[1].1 {
+            assert_eq!(ty, glium::uniforms::UniformType::FloatVec3);
+            assert_eq!(offset_in_buffer, 0);
+        } else {
+            panic!();
+        }
+
+        //assert_eq!(members[0].0, "color");     // FIXME: "color[0]" is returned
+        if let glium::program::BlockLayout::Array { ref content, length } = members[0].1 {
+            assert_eq!(length, 12);
+            if let glium::program::BlockLayout::BasicType { ty, offset_in_buffer } = **content {
+                assert_eq!(ty, glium::uniforms::UniformType::Float);
+                assert!(offset_in_buffer >= 4 * 3);
+            } else {
+                panic!();
+            }
+        } else {
+            panic!();
+        }
+
+    } else {
+        panic!();
+    }
 
     display.assert_no_error(None);
 }
